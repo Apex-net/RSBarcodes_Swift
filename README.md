@@ -43,8 +43,10 @@ Simply add the following lines to your `Podfile`:
 # required by Cocoapods 0.36.0.rc.1 for Swift Pods
 use_frameworks! 
 
-pod 'RSBarcodes_Swift', '~> 0.1.5'
+pod 'RSBarcodes_Swift', '~> 0.1.9'
 ```
+
+Need to import RSBarcodes_Swift manually in the ViewController file after creating the file using wizard.
 
 *(CocoaPods v0.36 or later required. See [this blog post](http://blog.cocoapods.org/Pod-Authors-Guide-to-CocoaPods-Frameworks/) for details.)*
 
@@ -53,8 +55,10 @@ pod 'RSBarcodes_Swift', '~> 0.1.5'
 Simply add the following line to your `Cartfile`:
 
 ```ruby
-github "yeahdongcn/RSBarcodes_Swift" >= 0.1.5
+github "yeahdongcn/RSBarcodes_Swift" >= 0.1.9
 ```
+
+Need to import RSBarcodes_Swift manually in the ViewController file after creating the file using wizard.
 
 ###Manual
 
@@ -65,11 +69,12 @@ github "yeahdongcn/RSBarcodes_Swift" >= 0.1.5
 5. In the tab bar at the top of that window, open the "Build Phases" panel.
 6. Expand the "Target Dependencies" group, and add `RSBarcodes.framework`.
 7. Click on the `+` button at the top left of the panel and select "New Copy Files Phase". Rename this new phase to "Copy Frameworks", set the "Destination" to "Frameworks", and add `RSBarcodes.framework`.
+8. Need to import RSBarcodes manually in the ViewController file after creating the file using wizard.
 
 ##Usage
 
-[HOW TO USE GENERATOR](https://github.com/yeahdongcn/RSBarcodes_Swift/tree/CB) and 
-[HOW TO USE READER](https://github.com/yeahdongcn/RSBarcodes_Swift/tree/Vicky)
+[HOW TO USE GENERATOR](#generator-1) and 
+[HOW TO USE READER](#reader-1)
 
 ###Generators
 
@@ -77,13 +82,13 @@ The simplest way to use the generators is:
 
     RSUnifiedCodeGenerator.shared.generateCode("2166529V", machineReadableCodeObjectType: AVMetadataObjectTypeCode39Code)
 
-It will generate an UIImage instance if the `2166529V` is a valid code39 string. For AVMetadataObjectTypeCode128Code, you can change `useBuiltInCode128Generator` to `false` to use my implementation (AutoTable for code128).
+It will generate a UIImage instance if the `2166529V` is a valid code39 string. For AVMetadataObjectTypeCode128Code, you can change `useBuiltInCode128Generator` to `false` to use my implementation (AutoTable for code128).
 
-P.S. There are 4 table for encoding a string to code128, `TableA`, `TableB`, `TableC` and `TableAuto`, the `TableAuto` is always the best choice, but if one has certain requirement, try this:
+P.S. There are 4 tables for encoding a string to code128, `TableA`, `TableB`, `TableC` and `TableAuto`; the `TableAuto` is always the best choice, but if one has specific requirements, try this:
 
     RSCode128Generator(codeTable: .A).generateCode("123456", machineReadableCodeObjectType: AVMetadataObjectTypeCode128Code)
 
-These calling simples can be found in the test project.
+Example of these simple calls can be found in the test project.
 
 ###Reader
 
@@ -115,15 +120,23 @@ The following are steps to get the barcode reader working:
         }
     }
     
-If you want to ignore some code types, simply add following lines
+If you want to ignore some code types, you'd better add the following lines:
 
     let types = NSMutableArray(array: self.output.availableMetadataObjectTypes)
     types.removeObject(AVMetadataObjectTypeQRCode)
     self.output.metadataObjectTypes = NSArray(array: types)
     
-###Helper
+###Validator
+
+To validate codes:
+
+    let isValid = RSUnifiedCodeValidator.shared.isValid(code, machineReadableCodeObjectType: AVMetadataObjectTypeEAN13Code)
+
+###Image helpers
 
 Use `RSAbstractCodeGenerator.resizeImage(<#source: UIImage#>, scale: <#CGFloat#>)` to scale the generated image.
+
+Use `RSAbstractCodeGenerator.resizeImage(<#T##source: UIImage##UIImage#>, targetSize: <#T##CGSize#>, contentMode: <#T##UIViewContentMode#>)` to fill/fit the bounds of something to the best capability and don't necessarily know what scale is too much to fill/fit, or if the imageView itself is flexible.
 
 ##Miscellaneous
 

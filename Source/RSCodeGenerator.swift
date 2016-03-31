@@ -16,10 +16,10 @@ let DIGITS_STRING = "0123456789"
 // Controls the amount of additional data encoded in the output image to provide error correction.
 // Higher levels of error correction result in larger output images but allow larger areas of the code to be damaged or obscured without.
 public enum InputCorrectionLevel: String {
-    case Medium = "M"   // 7%
-    case Low = "L"      // 15% default
-    case Quarter = "Q"  // 25%
-    case High = "H"     // 30%
+    case Low = "L"     // 7%
+    case Medium = "M"  // 15% default
+    case Quarter = "Q" // 25%
+    case High = "H"    // 30%
 }
 
 // Code generators are required to provide these two functions.
@@ -29,6 +29,9 @@ public protocol RSCodeGenerator {
     
     /** The stroke color of the generated barcode. */
     var strokeColor: UIColor {get set}
+    
+    /** Check whether the given contents are valid. */
+    func isValid(contents:String) -> Bool
     
     /** Generate code image using the given machine readable code object and correction level. */
     func generateCode(machineReadableCodeObject:AVMetadataMachineReadableCodeObject, inputCorrectionLevel:InputCorrectionLevel) -> UIImage?
@@ -202,6 +205,68 @@ public class RSAbstractCodeGenerator : RSCodeGenerator {
         let context = UIGraphicsGetCurrentContext()
         CGContextSetInterpolationQuality(context, CGInterpolationQuality.None)
         source.drawInRect(CGRectMake(0, 0, width, height))
+        let target = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return target
+    }
+    
+    public class func resizeImage(source:UIImage, targetSize:CGSize, contentMode:UIViewContentMode) -> UIImage {
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var width = targetSize.width
+        var height = targetSize.height
+        if (contentMode == UIViewContentMode.ScaleToFill) { // contents scaled to fill
+            // Nothing to do
+        } else if (contentMode == UIViewContentMode.ScaleAspectFill) { // contents scaled to fill with fixed aspect. some portion of content may be clipped.
+            let targtLength  = (targetSize.height > targetSize.width)   ? targetSize.height  : targetSize.width
+            let sourceLength = (source.size.height < source.size.width) ? source.size.height : source.size.width
+            let fillScale = targtLength / sourceLength
+            width = source.size.width * fillScale
+            height = source.size.height * fillScale
+            x = (targetSize.width  - width)  / 2.0
+            y = (targetSize.height - height) / 2.0
+        } else  { // contents scaled to fit with fixed aspect. remainder is transparent
+            let targtLength  = (targetSize.height < targetSize.width)   ? targetSize.height  : targetSize.width
+            let sourceLength = (source.size.height > source.size.width) ? source.size.height : source.size.width
+            let fillScale = targtLength / sourceLength
+            width = source.size.width * fillScale
+            height = source.size.height * fillScale
+            if (contentMode == UIViewContentMode.ScaleAspectFit
+                || contentMode == UIViewContentMode.Redraw
+                || contentMode == UIViewContentMode.Center) {
+                x = (targetSize.width  - width)  / 2.0
+                y = (targetSize.height - height) / 2.0
+            } else if (contentMode == UIViewContentMode.Top) {
+                x = (targetSize.width  - width)  / 2.0
+                y = 0
+            } else if (contentMode == UIViewContentMode.Bottom) {
+                x = (targetSize.width  - width)  / 2.0
+                y = targetSize.height - height
+            } else if (contentMode == UIViewContentMode.Left) {
+                x = 0
+                y = (targetSize.height - height) / 2.0
+            } else if (contentMode == UIViewContentMode.Right) {
+                x = targetSize.width  - width
+                y = (targetSize.height - height) / 2.0
+            } else if (contentMode == UIViewContentMode.TopLeft) {
+                x = 0
+                y = 0
+            } else if (contentMode == UIViewContentMode.TopRight) {
+                x = targetSize.width  - width
+                y = 0
+            } else if (contentMode == UIViewContentMode.BottomLeft) {
+                x = 0
+                y = targetSize.height - height
+            } else if (contentMode == UIViewContentMode.BottomRight) {
+                x = targetSize.width  - width
+                y = targetSize.height - height
+            }
+        }
+
+        UIGraphicsBeginImageContext(targetSize)
+        let context = UIGraphicsGetCurrentContext()
+        CGContextSetInterpolationQuality(context, CGInterpolationQuality.None)
+        source.drawInRect(CGRectMake(x, y, width, height))
         let target = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return target

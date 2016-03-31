@@ -22,7 +22,12 @@ public class RSUnifiedCodeGenerator: RSCodeGenerator {
     
     // MARK: RSCodeGenerator
     
-    public func generateCode(contents: String, inputCorrectionLevel:InputCorrectionLevel, machineReadableCodeObjectType: String) -> UIImage? {
+    public func isValid(contents: String) -> Bool {
+        print("Use RSUnifiedCodeValidator.shared.isValid(contents:String, machineReadableCodeObjectType: String) instead")
+        return false
+    }
+    
+    public func generateCode(contents: String, inputCorrectionLevel: InputCorrectionLevel, machineReadableCodeObjectType: String) -> UIImage? {
         var codeGenerator: RSCodeGenerator?
         switch machineReadableCodeObjectType {
         case AVMetadataObjectTypeQRCode, AVMetadataObjectTypePDF417Code, AVMetadataObjectTypeAztecCode:
